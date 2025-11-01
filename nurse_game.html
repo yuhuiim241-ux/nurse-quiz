@@ -1,0 +1,144 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>간호사 화법 유형 테스트 (무작위 선택지)</title>
+<style>
+body {
+  font-family: 'Pretendard', sans-serif;
+  background-color: #f5f8ff;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding: 20px;
+  margin: 0;
+}
+h1 { color: #3562c9; text-align: center; }
+p { font-size: 18px; text-align: center; margin-bottom: 20px; }
+button {
+  margin: 10px 0;
+  padding: 15px 20px;
+  font-size: 18px;
+  width: 90%;
+  border-radius: 12px;
+  border: none;
+  background-color: #4e89ff;
+  color: white;
+  cursor: pointer;
+}
+button:hover { background-color: #3562c9; }
+#result { display: none; text-align: center; margin-top: 30px; }
+</style>
+</head>
+<body>
+<h1>👩‍⚕️ 간호사 화법 유형 테스트</h1>
+<div id="quiz">
+  <p id="question"></p>
+  <div id="buttons"></div>
+</div>
+
+<div id="result">
+  <h2 id="resultTitle"></h2>
+  <p id="resultDesc"></p>
+  <button onclick="restart()">🔄 다시 해보기</button>
+</div>
+
+<script>
+// 5가지 유형
+const results = [
+  {name:"💗 따뜻한 공감형 간호사", desc:"환자의 감정을 우선 이해하고 부드럽게 설득하는 유형"},
+  {name:"🧠 논리적 설득형 간호사", desc:"근거와 합리적 설명으로 환자를 안심시키는 유형"},
+  {name:"🧍 거리두기형 간호사", desc:"환자의 선택을 존중하지만 소극적인 태도를 보이는 유형"},
+  {name:"💪 리더형 간호사", desc:"단호하고 자신감 있게 환자를 이끄는 유형"},
+  {name:"❄️ 냉철한 간호사", desc:"감정보다는 상황 판단 중심, 효율을 중시하는 유형"}
+];
+
+// 상황별 질문과 선택지
+let questions = [
+  {q:"상황 1: 환자가 치료를 거부합니다.", options:[
+      {text:"“지금 치료 안 받으면 더 심해집니다.”", score:[0,1,0,1,0]},
+      {text:"“치료가 힘드실 수 있지만, 꼭 필요합니다.”", score:[0,1,1,0,0]},
+      {text:"“치료가 두려우신가요? 어떤 점이 걱정되세요?”", score:[1,0,0,0,1]},
+      {text:"“결정은 환자분 몫이에요.”", score:[0,0,1,0,0]},
+      {text:"“제가 옆에서 도와드릴게요.”", score:[1,0,0,1,0]}
+    ]},
+  {q:"상황 2: 환자가 화를 내며 거부합니다.", options:[
+      {text:"“화내지 마세요, 빨리 치료하세요.”", score:[0,0,0,1,1]},
+      {text:"“환자님, 이해합니다. 불편한 점 말씀해 주세요.”", score:[1,0,0,0,0]},
+      {text:"“치료는 반드시 필요합니다.”", score:[0,1,0,0,1]},
+      {text:"“좋아요, 원하시는 대로 하세요.”", score:[0,0,1,0,0]},
+      {text:"“조금만 기다려주실 수 있을까요?”", score:[1,0,0,1,0]}
+    ]},
+  {q:"상황 3: 보호자가 걱정하며 간섭합니다.", options:[
+      {text:"“걱정하시는 건 알지만, 치료는 필요합니다.”", score:[0,1,0,0,1]},
+      {text:"“걱정되시죠, 치료 계획을 차근차근 설명드릴게요.”", score:[1,0,0,0,0]},
+      {text:"“결정은 환자와 상의하세요.”", score:[0,0,1,0,0]},
+      {text:"“저희가 다 처리할 테니 걱정 마세요.”", score:[0,0,0,1,0]},
+      {text:"“궁금하신 점 있으면 무엇이든 물어보세요.”", score:[1,0,0,0,1]}
+    ]}
+];
+
+// 배열 섞기 함수
+function shuffleArray(array){
+  for(let i=array.length-1;i>0;i--){
+    const j = Math.floor(Math.random()*(i+1));
+    [array[i], array[j]] = [array[j], array[i]];
+  }
+  return array;
+}
+
+let currentQ = 0;
+let score = [0,0,0,0,0];
+
+function showQuestion(){
+  const q = questions[currentQ];
+  document.getElementById("question").innerText = q.q;
+  const btnsDiv = document.getElementById("buttons");
+  btnsDiv.innerHTML = "";
+  let shuffledOptions = shuffleArray([...q.options]); // 선택지 무작위
+  shuffledOptions.forEach((opt)=>{
+    const btn = document.createElement("button");
+    btn.innerText = opt.text;
+    btn.onclick = ()=>choose(q.options.indexOf(opt)); // 실제 점수는 원본 index 기준
+    btnsDiv.appendChild(btn);
+  });
+}
+
+function choose(optIndex){
+  const q = questions[currentQ];
+  for(let i=0;i<5;i++){
+    score[i] += q.options[optIndex].score[i];
+  }
+  currentQ++;
+  if(currentQ<questions.length){
+    showQuestion();
+  } else {
+    showResult();
+  }
+}
+
+function showResult(){
+  let maxIndex = 0;
+  for(let i=1;i<score.length;i++){
+    if(score[i]>score[maxIndex]) maxIndex=i;
+  }
+  document.getElementById("quiz").style.display="none";
+  document.getElementById("resultTitle").innerText = results[maxIndex].name;
+  document.getElementById("resultDesc").innerText = results[maxIndex].desc;
+  document.getElementById("result").style.display="block";
+}
+
+function restart(){
+  score=[0,0,0,0,0];
+  currentQ=0;
+  document.getElementById("quiz").style.display="block";
+  document.getElementById("result").style.display="none";
+  showQuestion();
+}
+
+// 시작
+showQuestion();
+</script>
+</body>
+</html>
